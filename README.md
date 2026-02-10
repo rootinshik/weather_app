@@ -36,7 +36,7 @@
 ## Структура проекта
 
 ```
-trkpo/
+weather_app/
 ├── backend/    # FastAPI бэкенд
 ├── frontend/   # React SPA
 ├── bot/        # Telegram-бот
