@@ -6,7 +6,8 @@ $ErrorActionPreference = "Stop"
 
 function Setup-Python {
     param([string]$Service)
-    Write-Host "`n==> $Service" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "==> $Service" -ForegroundColor Cyan
     Push-Location $Service
     uv venv
     uv pip install -e .
@@ -19,18 +20,27 @@ Setup-Python "bot"
 Setup-Python "ml"
 
 # Frontend
-Write-Host "`n==> frontend" -ForegroundColor Cyan
-Push-Location frontend
-npm install
-Pop-Location
+Write-Host ""
+Write-Host "==> frontend" -ForegroundColor Cyan
+if (Get-Command npm -ErrorAction SilentlyContinue) {
+    Push-Location frontend
+    npm install
+    Pop-Location
+} else {
+    Write-Host "npm not found - skipping." -ForegroundColor Yellow
+    Write-Host "Install Node.js 20+ from https://nodejs.org/ and re-run." -ForegroundColor Yellow
+}
 
 # .env
 if (-not (Test-Path ".env")) {
     Copy-Item ".env.example" ".env"
-    Write-Host "`n.env создан из .env.example — заполни API-ключи." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host ".env created from .env.example - fill in API keys." -ForegroundColor Yellow
 } else {
-    Write-Host "`n.env уже существует, пропускаем." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host ".env already exists, skipping." -ForegroundColor Gray
 }
 
-Write-Host "`nГотово! Теперь выбери интерпретатор в VS Code:" -ForegroundColor Green
+Write-Host ""
+Write-Host "Done! Select Python interpreter in VS Code:" -ForegroundColor Green
 Write-Host "  Ctrl+Shift+P -> Python: Select Interpreter -> backend\.venv\Scripts\python.exe" -ForegroundColor Gray

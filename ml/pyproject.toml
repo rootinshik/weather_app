@@ -8,3 +8,6 @@ dependencies = [
     "numpy>=2.2",
     "joblib>=1.4",
 ]
+
+[tool.setuptools]
+packages = []
