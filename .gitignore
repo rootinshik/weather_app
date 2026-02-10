@@ -1,0 +1,38 @@
+# Environment
+.env
+.env.local
+
+# Claude Code
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# Node.js
+node_modules/
+frontend/dist/
+
+# ML artifacts
+ml/artifacts/*.joblib
+ml/data/*.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
