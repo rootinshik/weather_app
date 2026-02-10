@@ -10,7 +10,7 @@ function Setup-Python {
     Write-Host "==> $Service" -ForegroundColor Cyan
     Push-Location $Service
     uv venv
-    uv pip install -e .
+    uv pip install -e ".[dev]" 
     Pop-Location
 }
 
