@@ -1,0 +1,39 @@
+name: "YandexWeather"
+type: "parser"
+priority: 3
+enabled: true
+
+connection:
+  base_url: "https://yandex.ru/pogoda"
+  timeout: 15
+  headers:
+    User-Agent: "Mozilla/5.0 (compatible; WeatherAggregator/1.0)"
+    Accept-Language: "ru-RU,ru;q=0.9"
+
+endpoints:
+  current:
+    path: "/{city}"
+
+css_selectors:
+  temperature: ".temp__value"
+  feels_like: ".term__feels-like .temp__value"
+  humidity: ".fact__humidity .fact__unit"
+  pressure: ".fact__pressure .fact__unit"
+  wind_speed: ".fact__wind-speed .wind-speed"
+  description: ".fact__condition"
+  icon: ".fact__icon img"
+
+field_mapping:
+  temperature: "temperature"
+  feels_like: "feels_like"
+  humidity: "humidity"
+  pressure: "pressure"
+  wind_speed: "wind_speed"
+  description: "description"
+  icon: "icon"
+
+unit_conversions:
+  pressure:
+    from: "mmhg"
+    to: "hpa"
+    factor: 1.33322

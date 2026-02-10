@@ -1,0 +1,48 @@
+name: "WeatherAPI"
+type: "rest"
+priority: 2
+enabled: true
+
+connection:
+  base_url: "https://api.weatherapi.com/v1"
+  api_key: "${WEATHERAPI_KEY}"
+  timeout: 10
+
+endpoints:
+  current:
+    path: "/current.json"
+    params:
+      key: "${WEATHERAPI_KEY}"
+      q: "{city}"
+      aqi: "no"
+  forecast:
+    path: "/forecast.json"
+    params:
+      key: "${WEATHERAPI_KEY}"
+      q: "{city}"
+      days: 7
+      aqi: "no"
+      alerts: "no"
+
+field_mapping:
+  temperature: "current.temp_c"
+  feels_like: "current.feelslike_c"
+  humidity: "current.humidity"
+  pressure: "current.pressure_mb"
+  wind_speed: "current.wind_kph"
+  wind_direction: "current.wind_degree"
+  description: "current.condition.text"
+  icon: "current.condition.icon"
+  clouds: "current.cloud"
+  visibility: "current.vis_km"
+  timestamp: "current.last_updated_epoch"
+
+unit_conversions:
+  wind_speed:
+    from: "kph"
+    to: "m/s"
+    factor: 0.27778
+  visibility:
+    from: "km"
+    to: "m"
+    factor: 1000.0

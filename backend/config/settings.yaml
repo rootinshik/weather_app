@@ -1,0 +1,31 @@
+app:
+  title: "Weather Aggregator"
+  version: "1.0.0"
+  debug: false
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+
+database:
+  user: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  host: "${DB_HOST}"
+  port: "${DB_PORT}"
+  name: "${DB_NAME}"
+
+admin:
+  api_key: "${ADMIN_API_KEY}"
+
+scheduler:
+  fetch_interval_minutes: 30
+  enabled: true
+
+geocoding:
+  provider: "openstreetmap"
+  base_url: "https://nominatim.openstreetmap.org"
+
+ml:
+  model_path: "/app/ml/artifacts/model.joblib"
+  label_encoder_path: "/app/ml/artifacts/label_encoder.joblib"
+  enabled: true

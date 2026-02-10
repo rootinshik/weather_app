@@ -1,0 +1,37 @@
+name: "OpenWeatherMap"
+type: "rest"
+priority: 1
+enabled: true
+
+connection:
+  base_url: "https://api.openweathermap.org/data/2.5"
+  api_key: "${OWM_API_KEY}"
+  timeout: 10
+
+endpoints:
+  current:
+    path: "/weather"
+    params:
+      q: "{city}"
+      appid: "${OWM_API_KEY}"
+      units: "metric"
+  forecast:
+    path: "/forecast"
+    params:
+      q: "{city}"
+      appid: "${OWM_API_KEY}"
+      units: "metric"
+      cnt: 40
+
+field_mapping:
+  temperature: "main.temp"
+  feels_like: "main.feels_like"
+  humidity: "main.humidity"
+  pressure: "main.pressure"
+  wind_speed: "wind.speed"
+  wind_direction: "wind.deg"
+  description: "weather.0.description"
+  icon: "weather.0.icon"
+  clouds: "clouds.all"
+  visibility: "visibility"
+  timestamp: "dt"
