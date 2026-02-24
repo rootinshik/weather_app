@@ -1,5 +1,6 @@
 """Weather data aggregation and normalization package."""
 
+from app.aggregator.engine import aggregate
 from app.aggregator.normalizer import (
     UNIT_CONVERTERS,
     apply_conversions,
@@ -15,6 +16,7 @@ from app.aggregator.normalizer import (
 )
 
 __all__ = [
+    "aggregate",
     "normalize_value",
     "apply_conversions",
     "kph_to_ms",
