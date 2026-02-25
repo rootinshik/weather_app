@@ -1,11 +1,15 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.router import api_router
 from app.core.scheduler import scheduler
+from app.dependencies import get_db
+from app.middleware.logging import RequestLoggingMiddleware
 from app.services.source_manager import source_manager
 
 logger = logging.getLogger(__name__)
@@ -41,6 +45,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -55,3 +60,13 @@ app.include_router(api_router)
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/readiness")
+async def readiness(db: AsyncSession = Depends(get_db)) -> dict[str, str]:
+    """Check that the application can reach the database."""
+    try:
+        await db.execute(text("SELECT 1"))
+        return {"status": "ready"}
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Database unavailable") from exc
