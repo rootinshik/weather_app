@@ -66,3 +66,62 @@ class AggregatedWeather(BaseModel):
             }
         }
     }
+
+
+class AggregatedWeatherResponse(BaseModel):
+    """Response schema for aggregated current weather."""
+
+    city_id: int
+    fetched_at: datetime
+    weather: AggregatedWeather
+
+
+class ForecastPoint(BaseModel):
+    """Single forecast time point with aggregated weather data."""
+
+    forecast_dt: datetime
+    weather: AggregatedWeather
+
+
+class ForecastResponse(BaseModel):
+    """Response schema for weather forecast."""
+
+    city_id: int
+    days: int
+    forecasts: list[ForecastPoint]
+
+
+class SourceWeatherData(BaseModel):
+    """Weather data from a single source."""
+
+    source_name: str
+    priority: int
+    fetched_at: datetime
+    weather: AggregatedWeather
+
+
+class SourceWeatherResponse(BaseModel):
+    """Response schema for per-source weather data."""
+
+    city_id: int
+    sources: dict[str, SourceWeatherData]
+
+
+class ChartPoint(BaseModel):
+    """Hourly chart data point."""
+
+    hour: datetime
+    temperature: float | None = None
+    feels_like: float | None = None
+    precipitation_amount: float | None = None
+    wind_speed: float | None = None
+    humidity: int | None = None
+
+
+class DailyChartPoint(BaseModel):
+    """Daily chart data point with min/max temperatures."""
+
+    date: str = Field(description="Date in ISO format (YYYY-MM-DD)")
+    temp_min: float
+    temp_max: float
+    temp_avg: float
