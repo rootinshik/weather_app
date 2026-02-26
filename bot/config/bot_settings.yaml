@@ -1,0 +1,9 @@
+bot:
+  token: "${TELEGRAM_BOT_TOKEN}"
+
+backend:
+  base_url: "http://backend:8000"
+  timeout: 10
+
+logging:
+  level: "INFO"
