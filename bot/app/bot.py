@@ -5,7 +5,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from app.config import settings
-from app.handlers import help, start
+from app.handlers import city, forecast, help, source, start, weather
 from app.middlewares.user_tracking import UserTrackingMiddleware
 from app.services.api_client import BackendAPIClient
 
@@ -27,11 +27,18 @@ def create_bot() -> Bot:
 def create_dispatcher(api_client: BackendAPIClient) -> Dispatcher:
     dp = Dispatcher()
 
+    # Inject api_client into all handlers via workflow data
+    dp.workflow_data.update({"api_client": api_client})
+
     # Register middleware
     dp.message.middleware(UserTrackingMiddleware(api_client))
 
-    # Register routers
+    # Register routers (order matters: more specific first)
     dp.include_router(start.router)
     dp.include_router(help.router)
+    dp.include_router(weather.router)
+    dp.include_router(forecast.router)
+    dp.include_router(city.router)
+    dp.include_router(source.router)
 
     return dp
