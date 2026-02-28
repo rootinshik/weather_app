@@ -31,13 +31,12 @@ def _make_config(**overrides) -> dict:
             "current": {"path": "/{city}"},
         },
         "css_selectors": {
-            "temperature": ".temp__value",
-            "feels_like": ".term__feels-like .temp__value",
-            "humidity": ".fact__humidity .fact__unit",
-            "pressure": ".fact__pressure .fact__unit",
-            "wind_speed": ".fact__wind-speed .wind-speed",
-            "description": ".fact__condition",
-            "icon": ".fact__icon img",
+            "temperature": '[class*="AppFactTemperature_content"]',
+            "feels_like": '[class*="AppFact_feels__base"]',
+            "description": '[class*="AppFact_warning__first_text"]',
+            "wind_speed": '[class*="AppFact_details__item"]:first-child',
+            "pressure": '[class*="AppFact_details__item"]:nth-child(2)',
+            "humidity": '[class*="AppFact_details__item"]:nth-child(3)',
         },
         "field_mapping": {},
         "unit_conversions": {
@@ -54,7 +53,7 @@ def fetcher():
 
 
 def _mock_http(status: int, text: str) -> MagicMock:
-    """Build a mock aiohttp.ClientSession that returns the given HTML text."""
+    """Build a mock aiohttp.ClientSession returning the given HTML text."""
     mock_resp = AsyncMock()
     mock_resp.status = status
     mock_resp.text = AsyncMock(return_value=text)
@@ -71,39 +70,32 @@ def _mock_http(status: int, text: str) -> MagicMock:
     return mock_session
 
 
-# Minimal Yandex.Weather-like HTML fragment with all expected elements present
-_FULL_HTML = """
+# ---------------------------------------------------------------------------
+# HTML fixtures
+# ---------------------------------------------------------------------------
+
+# Realistic Next.js payload: JSON data embedded in a script tag.
+# Keys use escaped double-quotes (\") as produced by React Server Components.
+_NEXTJS_HTML = """
 <html><body>
-  <div class="fact__temp">
-    <span class="temp__value">−3</span>
-  </div>
-  <div class="term__feels-like">
-    <span class="temp__value">−7</span>
-  </div>
-  <div class="fact__humidity">
-    <span class="fact__unit">85%</span>
-  </div>
-  <div class="fact__pressure">
-    <span class="fact__unit">750 мм рт. ст.</span>
-  </div>
-  <div class="fact__wind-speed">
-    <span class="wind-speed">4</span>
-  </div>
-  <div class="fact__condition">Пасмурно</div>
-  <div class="fact__icon">
-    <img src="//yandex.ru/icons/cloudy.png">
-  </div>
+  <script>self.__next_f.push([1,"data:{\\"fact\\":{\\"temperature\\":1,\
+\\"temperatureInCelsius\\":1,\\"feelsLike\\":-2,\\"waterTemperature\\":0,\
+\\"icon\\":\\"ovc\\",\\"windSpeed\\":1,\\"windGust\\":4.5,\\"pressure\\":761,\
+\\"condition\\":\\"OVERCAST\\",\\"humidity\\":96,\\"visibility\\":10000}}"])</script>
+  <span class="AppFact_warning__first_text___wtkV" data-has-dot="true">Пасмурно</span>
 </body></html>
 """
 
-# HTML with temperature element only (other selectors absent)
-_PARTIAL_HTML = """
+# HTML with NO embedded JSON — only CSS elements (CSS-fallback path).
+_CSS_ONLY_HTML = """
 <html><body>
-  <span class="temp__value">+12</span>
+  <p class="AppFactTemperature_content__XYZ">+12°</p>
+  <span class="AppFact_feels__base__ABC">Ощущается как −1°</span>
+  <span class="AppFact_warning__first_text___DEF">Облачно</span>
 </body></html>
 """
 
-# HTML with no matching elements at all
+# Completely empty page — no data at all.
 _EMPTY_HTML = "<html><body></body></html>"
 
 
@@ -122,7 +114,6 @@ class TestCityToSlug:
         assert _city_to_slug("Saint Petersburg") == "saint-petersburg"
 
     def test_unknown_city_fallback(self):
-        # Unknown city → lowercase + spaces replaced with hyphens
         assert _city_to_slug("Some Unknown City") == "some-unknown-city"
 
     def test_case_insensitive(self):
@@ -142,15 +133,15 @@ class TestYandexWeatherFetcherInit:
         assert fetcher.timeout == 15
 
     def test_css_selectors_loaded(self, fetcher):
-        assert fetcher.css_selectors["temperature"] == ".temp__value"
-        assert fetcher.css_selectors["pressure"] == ".fact__pressure .fact__unit"
+        assert "AppFact_warning__first_text" in fetcher.css_selectors["description"]
+        assert "AppFactTemperature_content" in fetcher.css_selectors["temperature"]
 
     def test_is_enabled(self, fetcher):
         assert fetcher.is_enabled() is True
 
 
 # ---------------------------------------------------------------------------
-# _fetch_html (private, tested via mocks)
+# _fetch_html
 # ---------------------------------------------------------------------------
 
 class TestFetchHtml:
@@ -165,15 +156,13 @@ class TestFetchHtml:
     async def test_returns_none_on_404(self, fetcher):
         mock_session = _mock_http(404, "")
         with patch("aiohttp.ClientSession", return_value=mock_session):
-            html = await fetcher._fetch_html("https://yandex.ru/pogoda/xyz", "xyz")
-        assert html is None
+            assert await fetcher._fetch_html("https://yandex.ru/pogoda/xyz", "xyz") is None
 
     @pytest.mark.asyncio
     async def test_returns_none_on_500(self, fetcher):
         mock_session = _mock_http(500, "")
         with patch("aiohttp.ClientSession", return_value=mock_session):
-            html = await fetcher._fetch_html("https://yandex.ru/pogoda/moscow", "moscow")
-        assert html is None
+            assert await fetcher._fetch_html("https://yandex.ru/pogoda/moscow", "moscow") is None
 
     @pytest.mark.asyncio
     async def test_returns_none_on_client_error(self, fetcher):
@@ -182,8 +171,7 @@ class TestFetchHtml:
         mock_session.__aexit__ = AsyncMock(return_value=None)
         mock_session.get.side_effect = aiohttp.ClientError("refused")
         with patch("aiohttp.ClientSession", return_value=mock_session):
-            html = await fetcher._fetch_html("https://yandex.ru/pogoda/moscow", "moscow")
-        assert html is None
+            assert await fetcher._fetch_html("https://yandex.ru/pogoda/moscow", "moscow") is None
 
     @pytest.mark.asyncio
     async def test_returns_none_on_timeout(self, fetcher):
@@ -192,107 +180,109 @@ class TestFetchHtml:
         mock_session.__aexit__ = AsyncMock(return_value=None)
         mock_session.get.side_effect = asyncio.TimeoutError()
         with patch("aiohttp.ClientSession", return_value=mock_session):
-            html = await fetcher._fetch_html("https://yandex.ru/pogoda/moscow", "moscow")
-        assert html is None
+            assert await fetcher._fetch_html("https://yandex.ru/pogoda/moscow", "moscow") is None
 
 
 # ---------------------------------------------------------------------------
-# _parse_current
+# _extract_json_fact
 # ---------------------------------------------------------------------------
 
-class TestParseCurrentHtml:
+class TestExtractJsonFact:
     def test_extracts_temperature(self, fetcher):
-        result = fetcher._parse_current(_FULL_HTML, "moscow")
-        assert result["temperature"] == -3.0
+        data = fetcher._extract_json_fact(_NEXTJS_HTML)
+        assert data["temperature"] == 1.0
 
     def test_extracts_feels_like(self, fetcher):
-        result = fetcher._parse_current(_FULL_HTML, "moscow")
-        assert result["feels_like"] == -7.0
+        data = fetcher._extract_json_fact(_NEXTJS_HTML)
+        assert data["feels_like"] == -2.0
+
+    def test_extracts_pressure_mmhg(self, fetcher):
+        data = fetcher._extract_json_fact(_NEXTJS_HTML)
+        assert data["pressure"] == 761.0
 
     def test_extracts_humidity(self, fetcher):
-        result = fetcher._parse_current(_FULL_HTML, "moscow")
-        assert result["humidity"] == 85
+        data = fetcher._extract_json_fact(_NEXTJS_HTML)
+        assert data["humidity"] == 96.0
 
-    def test_extracts_wind_speed(self, fetcher):
-        result = fetcher._parse_current(_FULL_HTML, "moscow")
-        assert result["wind_speed"] == 4.0
+    def test_extracts_wind_speed_ms(self, fetcher):
+        data = fetcher._extract_json_fact(_NEXTJS_HTML)
+        assert data["wind_speed"] == 1.0
 
-    def test_extracts_description(self, fetcher):
-        result = fetcher._parse_current(_FULL_HTML, "moscow")
-        assert result["description"] == "Пасмурно"
+    def test_extracts_visibility_m(self, fetcher):
+        data = fetcher._extract_json_fact(_NEXTJS_HTML)
+        assert data["visibility"] == 10000.0
 
-    def test_converts_pressure_mmhg_to_hpa(self, fetcher):
-        result = fetcher._parse_current(_FULL_HTML, "moscow")
-        # 750 mmHg * 1.33322 ≈ 999.915
-        expected = round(750 * 1.33322, 4)
+    def test_extracts_icon_url(self, fetcher):
+        data = fetcher._extract_json_fact(_NEXTJS_HTML)
+        assert data["icon"] == "https://yastatic.net/weather/i/icons/blueye/color/svg/ovc.svg"
+
+    def test_returns_empty_dict_when_no_json(self, fetcher):
+        assert fetcher._extract_json_fact(_CSS_ONLY_HTML) == {}
+
+    def test_returns_empty_dict_on_empty_html(self, fetcher):
+        assert fetcher._extract_json_fact(_EMPTY_HTML) == {}
+
+
+# ---------------------------------------------------------------------------
+# _parse_current — primary JSON path
+# ---------------------------------------------------------------------------
+
+class TestParseCurrentJson:
+    def test_temperature_from_json(self, fetcher):
+        result = fetcher._parse_current(_NEXTJS_HTML, "spb")
+        assert result["temperature"] == 1.0
+
+    def test_feels_like_from_json(self, fetcher):
+        result = fetcher._parse_current(_NEXTJS_HTML, "spb")
+        assert result["feels_like"] == -2.0
+
+    def test_pressure_converted_mmhg_to_hpa(self, fetcher):
+        result = fetcher._parse_current(_NEXTJS_HTML, "spb")
+        expected = round(761 * 1.33322, 4)
         assert abs(result["pressure"] - expected) < 0.01
 
-    def test_extracts_icon_url_with_https(self, fetcher):
-        result = fetcher._parse_current(_FULL_HTML, "moscow")
-        assert result["icon"] == "https://yandex.ru/icons/cloudy.png"
+    def test_humidity_from_json(self, fetcher):
+        result = fetcher._parse_current(_NEXTJS_HTML, "spb")
+        assert result["humidity"] == 96.0
 
-    def test_timestamp_is_set(self, fetcher):
-        result = fetcher._parse_current(_FULL_HTML, "moscow")
+    def test_wind_speed_from_json(self, fetcher):
+        result = fetcher._parse_current(_NEXTJS_HTML, "spb")
+        assert result["wind_speed"] == 1.0
+
+    def test_description_from_css(self, fetcher):
+        result = fetcher._parse_current(_NEXTJS_HTML, "spb")
+        assert result["description"] == "Пасмурно"
+
+    def test_icon_url_constructed(self, fetcher):
+        result = fetcher._parse_current(_NEXTJS_HTML, "spb")
+        assert result["icon"].endswith("/ovc.svg")
+
+    def test_timestamp_added(self, fetcher):
+        result = fetcher._parse_current(_NEXTJS_HTML, "spb")
         assert "timestamp" in result
         assert isinstance(result["timestamp"], int)
 
-    def test_partial_html_returns_partial_result(self, fetcher):
-        # Only temperature selector matches
-        result = fetcher._parse_current(_PARTIAL_HTML, "moscow")
+
+# ---------------------------------------------------------------------------
+# _parse_current — CSS fallback path
+# ---------------------------------------------------------------------------
+
+class TestParseCurrentCssFallback:
+    def test_temperature_from_css(self, fetcher):
+        result = fetcher._parse_current(_CSS_ONLY_HTML, "moscow")
         assert result["temperature"] == 12.0
-        assert "humidity" not in result
+
+    def test_feels_like_from_css(self, fetcher):
+        result = fetcher._parse_current(_CSS_ONLY_HTML, "moscow")
+        assert result["feels_like"] == -1.0
+
+    def test_description_from_css(self, fetcher):
+        result = fetcher._parse_current(_CSS_ONLY_HTML, "moscow")
+        assert result["description"] == "Облачно"
 
     def test_empty_html_returns_only_timestamp(self, fetcher):
         result = fetcher._parse_current(_EMPTY_HTML, "moscow")
-        # Nothing parsed except the auto-added timestamp
         assert set(result.keys()) == {"timestamp"}
-
-
-# ---------------------------------------------------------------------------
-# Static extractors
-# ---------------------------------------------------------------------------
-
-class TestExtractors:
-    def _el(self, html: str):
-        """Parse a single element from HTML snippet."""
-        from bs4 import BeautifulSoup
-        return BeautifulSoup(html, "html.parser").find()
-
-    def test_temperature_negative_unicode_minus(self):
-        el = self._el("<span>\u22125</span>")
-        assert YandexWeatherFetcher._extract_temperature(el) == -5.0
-
-    def test_temperature_positive_with_plus(self):
-        el = self._el("<span>+18</span>")
-        assert YandexWeatherFetcher._extract_temperature(el) == 18.0
-
-    def test_temperature_zero(self):
-        el = self._el("<span>0</span>")
-        assert YandexWeatherFetcher._extract_temperature(el) == 0.0
-
-    def test_extract_float_strips_units(self):
-        el = self._el("<span>750 мм рт. ст.</span>")
-        assert YandexWeatherFetcher._extract_float(el) == 750.0
-
-    def test_extract_int_strips_percent(self):
-        el = self._el("<span>85%</span>")
-        assert YandexWeatherFetcher._extract_int(el) == 85
-
-    def test_extract_text_returns_stripped(self):
-        el = self._el("<div>  Ясно  </div>")
-        assert YandexWeatherFetcher._extract_text(el) == "Ясно"
-
-    def test_extract_icon_url_adds_https(self):
-        el = self._el('<img src="//cdn.example.com/icon.png">')
-        assert YandexWeatherFetcher._extract_icon_url(el) == "https://cdn.example.com/icon.png"
-
-    def test_extract_icon_url_absolute(self):
-        el = self._el('<img src="https://cdn.example.com/icon.png">')
-        assert YandexWeatherFetcher._extract_icon_url(el) == "https://cdn.example.com/icon.png"
-
-    def test_extract_icon_url_no_src(self):
-        el = self._el("<img>")
-        assert YandexWeatherFetcher._extract_icon_url(el) is None
 
 
 # ---------------------------------------------------------------------------
@@ -310,23 +300,58 @@ class TestApplyConversions:
         fetcher._apply_conversions(data)
         assert data == {}
 
-    def test_none_field_ignored(self, fetcher):
+    def test_none_field_skipped(self, fetcher):
         data = {"pressure": None}
         fetcher._apply_conversions(data)
         assert data["pressure"] is None
 
 
 # ---------------------------------------------------------------------------
-# fetch_current (full integration via mock HTTP)
+# CSS fallback static extractors
+# ---------------------------------------------------------------------------
+
+class TestExtractors:
+    def _el(self, html: str):
+        from bs4 import BeautifulSoup
+        return BeautifulSoup(html, "html.parser").find()
+
+    def test_temperature_unicode_minus(self):
+        el = self._el("<span>\u22125</span>")
+        assert YandexWeatherFetcher._extract_temperature(el) == -5.0
+
+    def test_temperature_positive_with_plus(self):
+        el = self._el("<span>+18°</span>")
+        assert YandexWeatherFetcher._extract_temperature(el) == 18.0
+
+    def test_temperature_from_full_text(self):
+        # "Ощущается как −2°" → extracts -2
+        el = self._el("<span>Ощущается как \u22122°</span>")
+        assert YandexWeatherFetcher._extract_temperature(el) == -2.0
+
+    def test_extract_float_strips_units(self):
+        el = self._el("<span>750 мм рт. ст.</span>")
+        assert YandexWeatherFetcher._extract_float(el) == 750.0
+
+    def test_extract_int_strips_percent(self):
+        el = self._el("<span>85%</span>")
+        assert YandexWeatherFetcher._extract_int(el) == 85
+
+    def test_extract_text_stripped(self):
+        el = self._el("<div>  Ясно  </div>")
+        assert YandexWeatherFetcher._extract_text(el) == "Ясно"
+
+
+# ---------------------------------------------------------------------------
+# fetch_current (full pipeline via mocked HTTP)
 # ---------------------------------------------------------------------------
 
 class TestFetchCurrentAsync:
     @pytest.mark.asyncio
-    async def test_returns_data_on_200(self, fetcher):
-        mock_session = _mock_http(200, _FULL_HTML)
+    async def test_returns_data_from_json_on_200(self, fetcher):
+        mock_session = _mock_http(200, _NEXTJS_HTML)
         with patch("aiohttp.ClientSession", return_value=mock_session):
-            result = await fetcher.fetch_current("Moscow")
-        assert result["temperature"] == -3.0
+            result = await fetcher.fetch_current("Санкт-Петербург")
+        assert result["temperature"] == 1.0
         assert result["description"] == "Пасмурно"
 
     @pytest.mark.asyncio
@@ -358,7 +383,6 @@ class TestFetchCurrentAsync:
 
     @pytest.mark.asyncio
     async def test_uses_correct_slug_in_url(self, fetcher):
-        """Ensure city name is converted to slug before building URL."""
         mock_session = _mock_http(200, _EMPTY_HTML)
         with patch("aiohttp.ClientSession", return_value=mock_session):
             await fetcher.fetch_current("Москва")
@@ -373,13 +397,11 @@ class TestFetchCurrentAsync:
 class TestFetchForecast:
     @pytest.mark.asyncio
     async def test_returns_empty_list(self, fetcher):
-        result = await fetcher.fetch_forecast("Moscow")
-        assert result == []
+        assert await fetcher.fetch_forecast("Moscow") == []
 
     @pytest.mark.asyncio
     async def test_returns_empty_list_any_days(self, fetcher):
-        result = await fetcher.fetch_forecast("Moscow", days=7)
-        assert result == []
+        assert await fetcher.fetch_forecast("Moscow", days=7) == []
 
 
 # ---------------------------------------------------------------------------
@@ -388,13 +410,19 @@ class TestFetchForecast:
 
 class TestConnectionTest:
     @pytest.mark.asyncio
-    async def test_returns_true_when_selector_matches(self, fetcher):
-        mock_session = _mock_http(200, _FULL_HTML)
+    async def test_returns_true_when_json_present(self, fetcher):
+        mock_session = _mock_http(200, _NEXTJS_HTML)
         with patch("aiohttp.ClientSession", return_value=mock_session):
             assert await fetcher.test_connection() is True
 
     @pytest.mark.asyncio
-    async def test_returns_false_when_selector_missing(self, fetcher):
+    async def test_returns_true_when_css_fallback_matches(self, fetcher):
+        mock_session = _mock_http(200, _CSS_ONLY_HTML)
+        with patch("aiohttp.ClientSession", return_value=mock_session):
+            assert await fetcher.test_connection() is True
+
+    @pytest.mark.asyncio
+    async def test_returns_false_when_no_data(self, fetcher):
         mock_session = _mock_http(200, _EMPTY_HTML)
         with patch("aiohttp.ClientSession", return_value=mock_session):
             assert await fetcher.test_connection() is False

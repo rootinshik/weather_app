@@ -7,21 +7,36 @@ connection:
   base_url: "https://yandex.ru/pogoda"
   timeout: 15
   headers:
-    User-Agent: "Mozilla/5.0 (compatible; WeatherAggregator/1.0)"
+    User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     Accept-Language: "ru-RU,ru;q=0.9"
 
 endpoints:
   current:
     path: "/{city}"
 
+# CSS selectors for the current Yandex.Weather Next.js design.
+#
+# Numeric fields (temperature, pressure, humidity, wind_speed, visibility)
+# are extracted primarily from the embedded JSON in __next_f.push script tags,
+# which is more stable than class names.  These selectors serve as fallback
+# when the JSON payload is absent or structured differently.
+#
+# Note: Yandex uses CSS Modules; class names include a build-specific hash
+# suffix (e.g. AppFactTemperature_value__2qhsG).  The [class*="..."] attribute
+# substring selector matches the stable prefix across builds.
 css_selectors:
-  temperature: ".temp__value"
-  feels_like: ".term__feels-like .temp__value"
-  humidity: ".fact__humidity .fact__unit"
-  pressure: ".fact__pressure .fact__unit"
-  wind_speed: ".fact__wind-speed .wind-speed"
-  description: ".fact__condition"
-  icon: ".fact__icon img"
+  # Full temperature text: "+1°"
+  temperature: '[class*="AppFactTemperature_content"]'
+  # Feels-like text: "Ощущается как −2°"
+  feels_like: '[class*="AppFact_feels__base"]'
+  # Short Russian condition description: "Пасмурно", "Ясно", etc.
+  # Used as primary source for description (JSON only has English enum codes).
+  description: '[class*="AppFact_warning__first_text"]'
+  # Details list items (wind, pressure, humidity, water temp — in that order).
+  # These selectors are not used directly; the fetcher reads them by position.
+  wind_speed: '[class*="AppFact_details__item"]:first-child'
+  pressure: '[class*="AppFact_details__item"]:nth-child(2)'
+  humidity: '[class*="AppFact_details__item"]:nth-child(3)'
 
 field_mapping:
   temperature: "temperature"
@@ -31,6 +46,7 @@ field_mapping:
   wind_speed: "wind_speed"
   description: "description"
   icon: "icon"
+  visibility: "visibility"
 
 unit_conversions:
   pressure:
