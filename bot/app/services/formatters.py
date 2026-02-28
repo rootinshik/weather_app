@@ -67,8 +67,8 @@ def format_forecast(city_name: str, data: dict) -> str:
 
 def format_recommendation(rec: dict) -> str:
     """Format ML recommendation dict into an HTML string."""
-    label = rec.get("label") or rec.get("recommendation") or "—"
-    tips: list[str] = rec.get("tips") or []
+    label = rec.get("description") or rec.get("label") or rec.get("recommendation") or "—"
+    tips: list[str] = rec.get("items") or rec.get("tips") or []
     lines = ["", "👔 <b>Рекомендация:</b>", f"  {label}"]
     for tip in tips:
         lines.append(f"  • {tip}")

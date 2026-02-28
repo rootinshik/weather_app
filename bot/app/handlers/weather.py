@@ -32,8 +32,15 @@ async def cmd_weather(
             await message.answer(f"❌ Город <b>{city_query}</b> не найден.")
             return
         city = cities[0]
-        city_id = city.get("id") or city.get("city_id")
         city_name = city.get("name", city_query)
+        created = await api_client.create_city(
+            name=city_name,
+            country=city.get("country", ""),
+            lat=city.get("lat", 0.0),
+            lon=city.get("lon", 0.0),
+            local_name=city.get("local_name"),
+        )
+        city_id = created.get("id") if created else None
     elif backend_user:
         city_id = backend_user.get("preferred_city_id")
         if not city_id:
