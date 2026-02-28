@@ -10,6 +10,7 @@ from app.api.router import api_router
 from app.core.scheduler import scheduler
 from app.dependencies import get_db
 from app.middleware.logging import RequestLoggingMiddleware
+from app.services.recommendation_service import RecommendationService
 from app.services.source_manager import source_manager
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,9 @@ async def lifespan(app: FastAPI):
     # Load source configurations
     source_manager.load()
     logger.info("Source configs loaded: %d sources", len(source_manager.get_all()))
+
+    # Load ML model for clothing recommendations
+    RecommendationService.load_model()
 
     # Start background scheduler
     await scheduler.start()

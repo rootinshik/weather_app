@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import admin, cities, sources, users, weather
+from app.api.v1 import admin, cities, recommendations, sources, users, weather
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -11,3 +11,4 @@ api_router.include_router(cities.router)
 api_router.include_router(sources.router)
 api_router.include_router(users.router)
 api_router.include_router(admin.router)
+api_router.include_router(recommendations.router)

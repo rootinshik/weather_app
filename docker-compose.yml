@@ -25,6 +25,8 @@ services:
       DB_HOST: db
     ports:
       - "8000:8000"
+    volumes:
+      - ./ml/artifacts:/app/ml/artifacts:ro
     depends_on:
       db:
         condition: service_healthy
@@ -63,8 +65,8 @@ services:
       context: ./ml
       dockerfile: Dockerfile
     volumes:
-      - ./ml/artifacts:/app/artifacts
-      - ./ml/data:/app/data
+      - ./ml/artifacts:/app/ml/artifacts
+      - ./ml/data:/app/ml/data
     profiles:
       - training
 
