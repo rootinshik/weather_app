@@ -9,6 +9,7 @@ import logging
 from app.fetchers.factory import FetcherFactory
 from app.fetchers.openweathermap import OpenWeatherMapFetcher
 from app.fetchers.weatherapi import WeatherAPIFetcher
+from app.fetchers.yandex_weather import YandexWeatherFetcher
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ def register_all_fetchers() -> None:
     """
     FetcherFactory.register_fetcher("rest", OpenWeatherMapFetcher)
     FetcherFactory.register_fetcher("weatherapi", WeatherAPIFetcher)
+    FetcherFactory.register_fetcher("parser", YandexWeatherFetcher)
 
     logger.info(f"Registered {len(FetcherFactory.get_registered_types())} fetcher type(s)")
 
