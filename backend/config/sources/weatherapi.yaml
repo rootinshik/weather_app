@@ -1,5 +1,5 @@
 name: "WeatherAPI"
-type: "rest"
+type: "weatherapi"
 priority: 2
 enabled: true
 
