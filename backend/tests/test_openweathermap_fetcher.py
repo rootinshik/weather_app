@@ -48,8 +48,8 @@ def mock_config():
             "wind_speed": "wind.speed",
             "wind_direction": "wind.deg",
             "description": "weather.0.description",
-            "icon": "weather.0.icon",
-            "clouds": "clouds.all",
+            "icon_code": "weather.0.icon",
+            "cloudiness": "clouds.all",
             "visibility": "visibility",
             "timestamp": "dt",
         },
@@ -115,6 +115,30 @@ def mock_forecast_response():
     }
 
 
+def _mock_http(status: int, json_data: dict) -> MagicMock:
+    """Create a properly-wired aiohttp session mock.
+
+    aiohttp.ClientSession.get() returns a *synchronous* context manager, so
+    the session and the request context must be MagicMock (not AsyncMock).
+    Only __aenter__ / __aexit__ and .json() are coroutines and use AsyncMock.
+    """
+    mock_resp = AsyncMock()
+    mock_resp.status = status
+    mock_resp.json = AsyncMock(return_value=json_data)
+    mock_resp.raise_for_status = MagicMock()
+
+    mock_get_ctx = MagicMock()
+    mock_get_ctx.__aenter__ = AsyncMock(return_value=mock_resp)
+    mock_get_ctx.__aexit__ = AsyncMock(return_value=None)
+
+    mock_session = MagicMock()
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=None)
+    mock_session.get.return_value = mock_get_ctx
+
+    return mock_session
+
+
 class TestOpenWeatherMapFetcher:
     """Test suite for OpenWeatherMap fetcher."""
 
@@ -153,8 +177,8 @@ class TestOpenWeatherMapFetcher:
         assert result["wind_speed"] == 3.5
         assert result["wind_direction"] == 180
         assert result["description"] == "light rain"
-        assert result["icon"] == "10d"
-        assert result["clouds"] == 75
+        assert result["icon_code"] == "10d"
+        assert result["cloudiness"] == 75
         assert result["visibility"] == 10000
         assert result["timestamp"] == 1700000000
 
@@ -163,17 +187,7 @@ class TestOpenWeatherMapFetcher:
         self, fetcher, mock_current_weather_response
     ):
         """Test successful current weather fetch."""
-        mock_response = AsyncMock()
-        mock_response.status = 200
-        mock_response.json = AsyncMock(return_value=mock_current_weather_response)
-        mock_response.raise_for_status = MagicMock()
-
-        mock_session = AsyncMock()
-        mock_session.__aenter__.return_value = mock_session
-        mock_session.__aexit__.return_value = None
-        mock_session.get.return_value.__aenter__.return_value = mock_response
-        mock_session.get.return_value.__aexit__.return_value = None
-
+        mock_session = _mock_http(200, mock_current_weather_response)
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await fetcher.fetch_current("Moscow")
 
@@ -218,17 +232,7 @@ class TestOpenWeatherMapFetcher:
     @pytest.mark.asyncio
     async def test_fetch_forecast_success(self, fetcher, mock_forecast_response):
         """Test successful forecast fetch."""
-        mock_response = AsyncMock()
-        mock_response.status = 200
-        mock_response.json = AsyncMock(return_value=mock_forecast_response)
-        mock_response.raise_for_status = MagicMock()
-
-        mock_session = AsyncMock()
-        mock_session.__aenter__.return_value = mock_session
-        mock_session.__aexit__.return_value = None
-        mock_session.get.return_value.__aenter__.return_value = mock_response
-        mock_session.get.return_value.__aexit__.return_value = None
-
+        mock_session = _mock_http(200, mock_forecast_response)
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await fetcher.fetch_forecast("London")
 
@@ -260,16 +264,7 @@ class TestOpenWeatherMapFetcher:
     @pytest.mark.asyncio
     async def test_test_connection_success(self, fetcher, mock_current_weather_response):
         """Test successful connection test."""
-        mock_response = AsyncMock()
-        mock_response.status = 200
-        mock_response.json = AsyncMock(return_value=mock_current_weather_response)
-
-        mock_session = AsyncMock()
-        mock_session.__aenter__.return_value = mock_session
-        mock_session.__aexit__.return_value = None
-        mock_session.get.return_value.__aenter__.return_value = mock_response
-        mock_session.get.return_value.__aexit__.return_value = None
-
+        mock_session = _mock_http(200, mock_current_weather_response)
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await fetcher.test_connection()
 

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Index, String, func
+from sqlalchemy import DateTime, ForeignKey, Index, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -16,7 +16,7 @@ class RequestLog(Base):
     action: Mapped[str] = mapped_column(String(100), nullable=False)
     city_id: Mapped[int | None] = mapped_column(ForeignKey("cities.id"))
     request_meta: Mapped[dict | None] = mapped_column(JSONB)
-    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now())
 
     __table_args__ = (
         Index("ix_request_logs_created", "created_at"),

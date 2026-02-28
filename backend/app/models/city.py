@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Index, String, func
+from sqlalchemy import DateTime, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -15,7 +15,7 @@ class City(Base):
     country: Mapped[str] = mapped_column(String(2), nullable=False)
     lat: Mapped[float] = mapped_column(nullable=False)
     lon: Mapped[float] = mapped_column(nullable=False)
-    created_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now())
 
     __table_args__ = (
         Index("ix_cities_name", "name"),
