@@ -29,10 +29,10 @@ async def cmd_city(
         if preferred:
             text = (
                 f"Текущий город по умолчанию: <b>#{preferred}</b>\n\n"
-                "Чтобы сменить, отправь /city <название города>."
+                "Чтобы сменить, отправь /city название_города."
             )
         else:
-            text = "Город не задан.\n\nОтправь /city <название города>, чтобы выбрать."
+            text = "Город не задан.\n\nОтправь /city название_города, чтобы выбрать."
         await message.answer(text, parse_mode="HTML")
         return
 

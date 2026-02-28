@@ -38,7 +38,7 @@ async def cmd_weather(
         city_id = backend_user.get("preferred_city_id")
         if not city_id:
             await message.answer(
-                "Город не задан. Используй /city <название>, чтобы выбрать город по умолчанию."
+                "Город не задан. Используй /city название_города, чтобы выбрать город по умолчанию."
             )
             return
         city_name = f"город #{city_id}"

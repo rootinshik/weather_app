@@ -195,18 +195,19 @@ class OpenWeatherMapFetcher(AbstractWeatherFetcher):
         params = {}
 
         for key, value in params_config.items():
-            # Substitute placeholders
-            if "{city}" in value:
-                params[key] = value.replace("{city}", city)
-            elif value.startswith("${") and value.endswith("}"):
+            # YAML may parse unquoted numbers as int/float — always work with str
+            value_str = str(value)
+            if "{city}" in value_str:
+                params[key] = value_str.replace("{city}", city)
+            elif value_str.startswith("${") and value_str.endswith("}"):
                 # Environment variable reference - already substituted by config loader
                 # Use api_key from connection config
-                if "API_KEY" in value or "appid" in key:
+                if "API_KEY" in value_str or "appid" in key:
                     params[key] = self.api_key
                 else:
-                    params[key] = value
+                    params[key] = value_str
             else:
-                params[key] = value
+                params[key] = value_str
 
         return params
 

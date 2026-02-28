@@ -26,8 +26,8 @@ _FORECAST_HOUR_MAPPING: dict[str, str] = {
     "wind_speed": "wind_kph",
     "wind_direction": "wind_degree",
     "description": "condition.text",
-    "icon": "condition.icon",
-    "clouds": "cloud",
+    "icon_code": "condition.icon",
+    "cloudiness": "cloud",
     "visibility": "vis_km",
     "timestamp": "time_epoch",
 }

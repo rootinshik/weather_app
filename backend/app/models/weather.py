@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Float, ForeignKey, Index, Integer, String, func
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -13,7 +13,7 @@ class WeatherRecord(Base):
     city_id: Mapped[int] = mapped_column(ForeignKey("cities.id"), nullable=False)
     source_id: Mapped[int] = mapped_column(ForeignKey("weather_sources.id"), nullable=False)
     record_type: Mapped[str] = mapped_column(String(10), nullable=False)
-    forecast_dt: Mapped[datetime | None] = mapped_column()
+    forecast_dt: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     temperature: Mapped[float | None] = mapped_column(Float)
     feels_like: Mapped[float | None] = mapped_column(Float)
     wind_speed: Mapped[float | None] = mapped_column(Float)
@@ -25,7 +25,7 @@ class WeatherRecord(Base):
     cloudiness: Mapped[int | None] = mapped_column(Integer)
     description: Mapped[str | None] = mapped_column(String(500))
     icon_code: Mapped[str | None] = mapped_column(String(50))
-    fetched_at: Mapped[datetime] = mapped_column(default=func.now(), server_default=func.now())
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now())
 
     __table_args__ = (
         Index("ix_weather_records_city_type", "city_id", "record_type"),
