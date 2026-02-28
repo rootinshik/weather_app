@@ -100,6 +100,20 @@ class BackendAPIClient:
         result = await self._get("/api/v1/cities/search", {"q": query, "limit": limit})
         return result if isinstance(result, list) else []
 
+    async def create_city(
+        self,
+        name: str,
+        country: str,
+        lat: float,
+        lon: float,
+        local_name: str | None = None,
+    ) -> dict | None:
+        """POST /api/v1/cities — idempotent: returns existing if (name, country) matches."""
+        body: dict = {"name": name, "country": country, "lat": lat, "lon": lon}
+        if local_name:
+            body["local_name"] = local_name
+        return await self._post("/api/v1/cities", body)
+
     async def identify_user(self, platform: str, external_id: str) -> dict | None:
         """POST /api/v1/users/identify"""
         return await self._post(
@@ -122,8 +136,8 @@ class BackendAPIClient:
         return await self._patch(f"/api/v1/users/{user_id}/preferences", body)
 
     async def get_recommendation(self, city_id: int) -> dict | None:
-        """GET /api/v1/weather/recommendation (ML endpoint, may not exist yet)"""
-        return await self._get("/api/v1/weather/recommendation", {"city_id": city_id})
+        """GET /api/v1/recommendations/clothing"""
+        return await self._get("/api/v1/recommendations/clothing", {"city_id": city_id})
 
     async def get_sources(self) -> list[dict]:
         """GET /api/v1/sources"""
