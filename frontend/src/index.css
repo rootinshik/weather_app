@@ -1,0 +1,217 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== CORE THEME VARIABLES ===== */
+:root {
+  /* LIGHT THEME - Clean & Bright */
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+  --bg-color: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --accent: #3b82f6;
+  --accent-light: #60a5fa;
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --card-border: rgba(226, 232, 240, 0.6);
+  --shadow: rgba(0, 0, 0, 0.05);
+  --shadow-strong: rgba(0, 0, 0, 0.1);
+  --glow: rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="dark"] {
+  /* DARK THEME - Purple gradients as you wanted */
+  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 30%, #2e1065 70%, #0f172a 100%);
+  --bg-color: #0f172a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --accent: #a855f7;
+  --accent-light: #c084fc;
+  --card-bg: rgba(30, 41, 59, 0.8);
+  --card-border: rgba(168, 85, 247, 0.3);
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-strong: rgba(0, 0, 0, 0.5);
+  --glow: rgba(168, 85, 247, 0.4);
+}
+
+/* ===== BASE STYLES ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background: var(--bg-gradient) !important;
+  background-color: var(--bg-color) !important;
+  color: var(--text-primary) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.5s ease !important;
+}
+
+/* ===== TEXT COLORS ===== */
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.text-accent {
+  color: var(--accent) !important;
+}
+
+/* ===== GLASS EFFECTS ===== */
+.glass {
+  background: var(--card-bg) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: 0 8px 32px var(--shadow) !important;
+}
+
+.glass-dark {
+  background: color-mix(in srgb, var(--card-bg) 70%, transparent) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid color-mix(in srgb, var(--card-border) 40%, transparent) !important;
+}
+
+/* ===== INPUTS & FORMS ===== */
+input, textarea, select {
+  color: var(--text-primary) !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--glow) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.7;
+}
+
+/* Search input specific */
+.search-input {
+  color: var(--text-primary) !important;
+  background: var(--card-bg) !important;
+  border: 2px solid var(--card-border) !important;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* ===== BUTTONS ===== */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%) !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 25px var(--glow) !important;
+}
+
+/* ===== WEATHER CARDS ===== */
+.weather-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 1.5rem !important;
+  padding: 1.5rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.weather-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 40px var(--shadow-strong) !important;
+}
+
+.weather-stat {
+  background: color-mix(in srgb, var(--card-bg) 60%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--card-border) 30%, transparent) !important;
+  border-radius: 1rem !important;
+  padding: 1rem !important;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px var(--glow); }
+  50% { box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 60%, transparent); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.float { animation: float 3s ease-in-out infinite; }
+.glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
+.animate-fade-in { animation: fade-in 0.5s ease-out; }
+
+/* ===== UTILITY CLASSES ===== */
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.shadow-theme {
+  box-shadow: 0 8px 32px var(--shadow) !important;
+}
+
+.border-theme {
+  border-color: var(--card-border) !important;
+}
+
+.bg-theme {
+  background: var(--card-bg) !important;
+}
+
+/* ===== FIX FOR INVISIBLE TEXT ===== */
+*[class*="text-"] {
+  color: inherit !important;
+}
+
+/* Force text visibility in all elements */
+div, span, p, h1, h2, h3, h4, h5, h6, a, button, input, label {
+  color: var(--text-primary) !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .glass {
+    backdrop-filter: blur(12px) !important;
+  }
+}
