@@ -1,15 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../api/apiClient";
 
-export interface RecommendationData {
-  summary: string;
-  advice: string[];
-  risk_level?: string;
-}
-
 export interface RecommendationResponse {
   city_id: number;
-  recommendation: RecommendationData;
+  category: string;
+  description: string;
+  items: string[];
 }
 
 export const useClothingRecommendation = (cityId: number) => {
