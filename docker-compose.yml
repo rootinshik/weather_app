@@ -48,18 +48,17 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  bot:
-    build:
-      context: ./bot
-      dockerfile: Dockerfile
-    env_file: .env
-    environment:
-      BACKEND_URL: http://backend:8000
-    depends_on:
-      backend:
-        condition: service_healthy
-    restart: unless-stopped
-
+  # bot:
+#   build:
+#     context: ./bot
+#     dockerfile: Dockerfile
+#   env_file: .env
+#   environment:
+#     BACKEND_URL: http://backend:8000
+#   depends_on:
+#     backend:
+#       condition: service_healthy
+#   restart: unless-stopped
   ml-train:
     build:
       context: ./ml
