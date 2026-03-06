@@ -1,14 +1,10 @@
 import { Shirt, Sun } from "lucide-react";
 
-interface RecommendationData {
-  summary: string;
-  advice: string[];
-  risk_level?: string;
-}
-
 interface RecommendationResponse {
   city_id: number;
-  recommendation: RecommendationData;
+  category: string;
+  description: string;
+  items: string[];
 }
 
 interface Props {
@@ -25,15 +21,13 @@ export function ClothingRecommendation({ data, isLoading }: Props) {
     );
   }
 
-  if (!data?.recommendation) {
+  if (!data?.description) {
     return (
       <div className="glass p-6 rounded-2xl">
         <p className="text-muted">Рекомендации отсутствуют</p>
       </div>
     );
   }
-
-  const rec = data.recommendation;
 
   return (
     <div className="glass p-6 rounded-2xl shadow-lg">
@@ -42,22 +36,16 @@ export function ClothingRecommendation({ data, isLoading }: Props) {
         Рекомендации по одежде
       </h2>
 
-      <p className="mb-4 text-lg">{rec.summary}</p>
+      <p className="mb-4 text-lg">{data.description}</p>
 
       <ul className="space-y-2">
-        {rec.advice.map((item, index) => (
+        {data.items.map((item, index) => (
           <li key={index} className="flex items-center gap-2">
             <Sun className="w-4 h-4 text-accent" />
             {item}
           </li>
         ))}
       </ul>
-
-      {rec.risk_level && (
-        <p className="mt-4 text-sm text-muted">
-          Уровень риска: {rec.risk_level}
-        </p>
-      )}
     </div>
   );
 }

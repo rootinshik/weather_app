@@ -87,7 +87,7 @@ export function ForecastList({ data, isLoading }: Props) {
 
               <p>
                 Ветер: {wind != null
-                  ? `${wind.toFixed(1)} м/с`
+                  ? `${wind.toFixed(1)} ${windUnit === "m/s" ? "м/с" : "км/ч"}`
                   : "--"}
               </p>
 
