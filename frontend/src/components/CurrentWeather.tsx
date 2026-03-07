@@ -128,7 +128,11 @@ export function CurrentWeather({
 
         <div className="flex items-center gap-2">
           <Wind className="w-4 h-4 text-accent" />
+<<<<<<< HEAD
           <span>{wind.toFixed(1)} {windUnit}</span>
+=======
+          <span>{wind.toFixed(1)} {windUnit === "m/s" ? "м/с" : "км/ч"}</span>
+>>>>>>> 4b2fc05796ea401268e216a0370a4b6691228d9d
         </div>
 
         <div className="flex items-center gap-2">
@@ -138,7 +142,11 @@ export function CurrentWeather({
 
         <div className="flex items-center gap-2">
           <Gauge className="w-4 h-4 text-accent" />
+<<<<<<< HEAD
           <span>Давление: {pressure.toFixed(0)} {pressureUnit}</span>
+=======
+          <span>Давление: {pressure.toFixed(0)} {pressureUnit === "hPa" ? "гПа" : "мм рт.ст."}</span>
+>>>>>>> 4b2fc05796ea401268e216a0370a4b6691228d9d
         </div>
 
         <div className="flex items-center gap-2">
