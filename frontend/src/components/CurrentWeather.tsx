@@ -63,13 +63,13 @@ export function CurrentWeather({
 
   const weather = data.weather;
 
-  // ⭐ type workaround until conversions support K and mph
+  // type workaround until conversions support K and mph
   const temp = convertTemperature(weather.temperature, tempUnit as any);
   const feels = convertTemperature(weather.feels_like, tempUnit as any);
   const wind = convertWind(weather.wind_speed, windUnit as any);
   const pressure = convertPressure(weather.pressure, pressureUnit);
 
-  // ⭐ Russian weather description
+  // Russian weather description
   const weatherTranslations: Record<string, string> = {
     "clear sky": "Ясно",
     "few clouds": "Небольшая облачность",
@@ -89,7 +89,7 @@ export function CurrentWeather({
     weatherTranslations[weather.description?.toLowerCase() ?? ""] ??
     weather.description;
 
-  // ⭐ City name from saved cities
+  // City name from saved cities
   const savedCities = JSON.parse(localStorage.getItem("cities") || "[]");
   const city = savedCities.find((c: any) => c.id === data.city_id);
   const cityName = city ? city.name : "Город";
@@ -128,11 +128,7 @@ export function CurrentWeather({
 
         <div className="flex items-center gap-2">
           <Wind className="w-4 h-4 text-accent" />
-<<<<<<< HEAD
           <span>{wind.toFixed(1)} {windUnit}</span>
-=======
-          <span>{wind.toFixed(1)} {windUnit === "m/s" ? "м/с" : "км/ч"}</span>
->>>>>>> 4b2fc05796ea401268e216a0370a4b6691228d9d
         </div>
 
         <div className="flex items-center gap-2">
@@ -142,11 +138,7 @@ export function CurrentWeather({
 
         <div className="flex items-center gap-2">
           <Gauge className="w-4 h-4 text-accent" />
-<<<<<<< HEAD
           <span>Давление: {pressure.toFixed(0)} {pressureUnit}</span>
-=======
-          <span>Давление: {pressure.toFixed(0)} {pressureUnit === "hPa" ? "гПа" : "мм рт.ст."}</span>
->>>>>>> 4b2fc05796ea401268e216a0370a4b6691228d9d
         </div>
 
         <div className="flex items-center gap-2">
