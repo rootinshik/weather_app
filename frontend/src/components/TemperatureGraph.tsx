@@ -27,7 +27,8 @@ interface Props {
 
 export function TemperatureGraph({ hourlyData, dailyData, isLoading }: Props) {
 
-  const [mode, setMode] = useState<"24h" | "7d">("24h");
+  // ⭐ Better internal naming
+  const [mode, setMode] = useState<"hourly" | "daily">("hourly");
 
   if (isLoading) {
     return <p>Загрузка графика...</p>;
@@ -37,13 +38,13 @@ export function TemperatureGraph({ hourlyData, dailyData, isLoading }: Props) {
     return <p>Не удалось загрузить данные графика</p>;
   }
 
-  // ⭐ convert hourly
+  // ⭐ Convert hourly data
   const hourly = hourlyData.map((p) => ({
-    time: new Date(p.hour).getHours() + ":00",
+    time: `${new Date(p.hour).getHours()}:00`,
     temp: Number(p.temperature.toFixed(1))
   }));
 
-  // ⭐ convert daily
+  // ⭐ Convert daily data
   const daily = dailyData.map((p) => ({
     time: new Date(p.date).toLocaleDateString("ru-RU", {
       weekday: "short"
@@ -51,30 +52,37 @@ export function TemperatureGraph({ hourlyData, dailyData, isLoading }: Props) {
     temp: Number(p.temp_avg.toFixed(1))
   }));
 
-  const chartData = mode === "24h" ? hourly : daily;
+  // ⭐ Select dataset
+  const chartData = mode === "hourly" ? hourly : daily;
 
   return (
     <div className="glass p-6 rounded-2xl">
 
       {/* MODE SWITCH */}
       <div className="flex gap-4 mb-4">
+
         <button
-          onClick={() => setMode("24h")}
+          onClick={() => setMode("hourly")}
           className={`px-3 py-1 rounded ${
-            mode === "24h" ? "bg-accent text-white" : "bg-gray-700 text-gray-300"
+            mode === "hourly"
+              ? "bg-accent text-white"
+              : "bg-gray-700 text-gray-300"
           }`}
         >
           24ч
         </button>
 
         <button
-          onClick={() => setMode("7d")}
+          onClick={() => setMode("daily")}
           className={`px-3 py-1 rounded ${
-            mode === "7d" ? "bg-accent text-white" : "bg-gray-700 text-gray-300"
+            mode === "daily"
+              ? "bg-accent text-white"
+              : "bg-gray-700 text-gray-300"
           }`}
         >
           7д
         </button>
+
       </div>
 
       {/* CHART */}
@@ -83,28 +91,34 @@ export function TemperatureGraph({ hourlyData, dailyData, isLoading }: Props) {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
 
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#334155"
+            />
 
             <XAxis
               dataKey="time"
               stroke="#94a3b8"
             />
 
+            {/* ⭐ Better scaling */}
             <YAxis
               stroke="#94a3b8"
-              tickFormatter={(v) => `${v}°`}
+              domain={["auto", "auto"]}
+              tickFormatter={(value) => `${value}°`}
             />
 
+            {/* ⭐ Fixed tooltip */}
             <Tooltip
-  contentStyle={{
-    backgroundColor: "#1e293b",
-    border: "none",
-    borderRadius: "8px",
-    color: "#fff"
-  }}
-  labelStyle={{ color: "#94a3b8" }}
-  formatter={(value: number | undefined) => `${value?.toFixed(1) ?? 0}°C`}
-/>
+              contentStyle={{
+                backgroundColor: "#1e293b",
+                border: "none",
+                borderRadius: "8px",
+                color: "#fff"
+              }}
+              labelStyle={{ color: "#94a3b8" }}
+              formatter={(value: any) => [`${Number(value).toFixed(1)}°C`, "Температура"]}
+            />
 
             <Line
               type="monotone"

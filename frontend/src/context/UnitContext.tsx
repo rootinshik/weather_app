@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-type TempUnit = "C" | "F" | "K";
-type WindUnit = "ms" | "kmh" | "mph";
-type PressureUnit = "hPa" | "mmHg";
+export type TempUnit = "C" | "F" | "K";
+export type WindUnit = "m/s" | "km/h" | "mph";
+export type PressureUnit = "hPa" | "mmHg";
 
 interface UnitContextType {
   tempUnit: TempUnit;
@@ -17,7 +17,7 @@ const UnitContext = createContext<UnitContextType | null>(null);
 
 export function UnitProvider({ children }: { children: ReactNode }) {
   const [tempUnit, setTempUnit] = useState<TempUnit>("C");
-  const [windUnit, setWindUnit] = useState<WindUnit>("ms");
+  const [windUnit, setWindUnit] = useState<WindUnit>("m/s");
   const [pressureUnit, setPressureUnit] = useState<PressureUnit>("hPa");
 
   return (
