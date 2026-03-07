@@ -25,6 +25,7 @@ interface Props {
 }
 
 export function ForecastList({ data, isLoading }: Props) {
+
   const { tempUnit, windUnit } = useUnits();
 
   if (isLoading) {
@@ -50,18 +51,25 @@ export function ForecastList({ data, isLoading }: Props) {
 
   return (
     <div className="grid md:grid-cols-3 gap-4">
+
       {dailyForecasts.map((item, index) => {
 
         const date = new Date(item.forecast_dt);
 
         const temp =
           item.weather.temperature != null
-            ? convertTemperature(item.weather.temperature, tempUnit)
+            ? convertTemperature(
+                item.weather.temperature,
+                tempUnit as any   // ⭐ allow C/F/K
+              )
             : null;
 
         const wind =
           item.weather.wind_speed != null
-            ? convertWind(item.weather.wind_speed, windUnit)
+            ? convertWind(
+                item.weather.wind_speed,
+                windUnit as any   // ⭐ allow m/s km/h mph
+              )
             : null;
 
         return (
@@ -87,7 +95,7 @@ export function ForecastList({ data, isLoading }: Props) {
 
               <p>
                 Ветер: {wind != null
-                  ? `${wind.toFixed(1)} м/с`
+                  ? `${wind.toFixed(1)} ${windUnit}`
                   : "--"}
               </p>
 
@@ -95,7 +103,9 @@ export function ForecastList({ data, isLoading }: Props) {
 
           </div>
         );
+
       })}
+
     </div>
   );
 }

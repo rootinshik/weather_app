@@ -34,6 +34,7 @@ export function CurrentWeather({
   isLoading,
   isError,
 }: CurrentWeatherProps) {
+
   const { tempUnit, windUnit, pressureUnit } = useUnits();
 
   if (isError) {
@@ -62,9 +63,10 @@ export function CurrentWeather({
 
   const weather = data.weather;
 
-  const temp = convertTemperature(weather.temperature, tempUnit);
-  const feels = convertTemperature(weather.feels_like, tempUnit);
-  const wind = convertWind(weather.wind_speed, windUnit);
+  // ⭐ type workaround until conversions support K and mph
+  const temp = convertTemperature(weather.temperature, tempUnit as any);
+  const feels = convertTemperature(weather.feels_like, tempUnit as any);
+  const wind = convertWind(weather.wind_speed, windUnit as any);
   const pressure = convertPressure(weather.pressure, pressureUnit);
 
   // ⭐ Russian weather description
@@ -98,6 +100,7 @@ export function CurrentWeather({
       <h2 className="text-2xl font-semibold mb-6">{cityName}</h2>
 
       <div className="flex items-center justify-between mb-6">
+
         <div>
           <p className="text-5xl font-bold">
             {Math.round(temp)}°{tempUnit}
@@ -118,13 +121,14 @@ export function CurrentWeather({
           condition={weather.description ?? undefined}
           size={64}
         />
+
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
 
         <div className="flex items-center gap-2">
           <Wind className="w-4 h-4 text-accent" />
-          <span>{wind.toFixed(1)} м/с</span>
+          <span>{wind.toFixed(1)} {windUnit}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -134,7 +138,7 @@ export function CurrentWeather({
 
         <div className="flex items-center gap-2">
           <Gauge className="w-4 h-4 text-accent" />
-          <span>Давление: {pressure.toFixed(0)} гПа</span>
+          <span>Давление: {pressure.toFixed(0)} {pressureUnit}</span>
         </div>
 
         <div className="flex items-center gap-2">
