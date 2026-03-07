@@ -1,14 +1,8 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-<<<<<<< HEAD
 export type TempUnit = "C" | "F" | "K";
 export type WindUnit = "m/s" | "km/h" | "mph";
 export type PressureUnit = "hPa" | "mmHg";
-=======
-type TempUnit = "C" | "F";
-type WindUnit = "m/s" | "km/h";
-type PressureUnit = "hPa" | "mmHg";
->>>>>>> 4b2fc05796ea401268e216a0370a4b6691228d9d
 
 interface UnitContextType {
   tempUnit: TempUnit;

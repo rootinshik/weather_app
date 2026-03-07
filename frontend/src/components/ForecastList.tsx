@@ -93,15 +93,11 @@ export function ForecastList({ data, isLoading }: Props) {
                 Влажность: {item.weather.humidity ?? "--"}%
               </p>
 
-              <p>
-                Ветер: {wind != null
-<<<<<<< HEAD
-                  ? `${wind.toFixed(1)} ${windUnit}`
-=======
-                  ? `${wind.toFixed(1)} ${windUnit === "m/s" ? "м/с" : "км/ч"}`
->>>>>>> 4b2fc05796ea401268e216a0370a4b6691228d9d
-                  : "--"}
-              </p>
+            <p>
+  Ветер: {wind != null
+    ? `${wind.toFixed(1)} ${windUnit}`
+    : "--"}
+</p>
 
             </div>
 
