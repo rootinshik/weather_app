@@ -13,19 +13,22 @@ export function AdminLogin({ onLogin }: Props) {
     setError("");
 
     try {
-      // Changed from "/api/v1/admin/auth" to full URL
-      const res = await fetch("http://localhost:8000/api/v1/admin/auth", {
+      const res = await fetch("/api/v1/admin/auth", {
         method: "POST",
         headers: {
           "X-Admin-API-Key": apiKey
         }
       });
 
-      if (res.status === 200) {
+      if (res.ok) {
         onLogin(apiKey);
-      } else {
+        setApiKey(""); // clear field after login
+      } else if (res.status === 401 || res.status === 403) {
         setError("Неверный API ключ");
+      } else {
+        setError("Ошибка сервера");
       }
+
     } catch (error) {
       console.error("Login error:", error);
       setError("Ошибка подключения");
@@ -39,6 +42,7 @@ export function AdminLogin({ onLogin }: Props) {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+
         <input
           type="password"
           placeholder="Введите API-ключ"
@@ -55,10 +59,11 @@ export function AdminLogin({ onLogin }: Props) {
 
         <button
           type="submit"
-          className="w-full bg-blue-500 hover:bg-blue-600 p-3 rounded-xl"
+          className="w-full bg-blue-500 hover:bg-blue-600 p-3 rounded-xl text-white"
         >
           Войти
         </button>
+
       </form>
     </div>
   );
